@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KTM Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
+body{background:#0f172a;min-height:100vh;display:flex;flex-direction:column}
+header{background:linear-gradient(135deg,#1a237e,#283593);padding:18px 32px;display:flex;align-items:center;gap:14px;border-bottom:3px solid #fbc02d;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.logo{width:44px;height:44px;background:#fbc02d;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+header h1{color:#fff;font-size:1.3rem;font-weight:800}
+header span{color:rgba(255,255,255,0.6);font-size:0.8rem}
+.container{flex:1;display:flex;gap:0;height:calc(100vh - 73px)}
+.sidebar{width:380px;background:#1e293b;overflow-y:auto;padding:24px;border-right:1px solid #334155;flex-shrink:0}
+.preview-area{flex:1;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px}
+.card-wrap{width:100%;max-width:850px;aspect-ratio:1011/638;background:#1e293b;border-radius:16px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center}
+.card-wrap svg{width:100%;height:100%}
+.placeholder{text-align:center;color:#475569}
+.placeholder svg{width:64px;height:64px;opacity:0.4;margin-bottom:12px}
+.placeholder p{font-size:0.9rem}
+.actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.btn-dl{padding:11px 24px;background:#1a237e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;display:flex;align-items:center;gap:8px;transition:all .2s}
+.btn-dl:hover{background:#283593;transform:translateY(-1px)}
+.btn-dl.gold{background:#f59e0b;color:#1a0a00}
+.btn-dl.gold:hover{background:#d97706}
+.section-title{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#64748b;margin-bottom:12px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:0.82rem;font-weight:600;color:#94a3b8;margin-bottom:6px}
+.form-group input,.form-group select{width:100%;padding:10px 13px;background:#0f172a;border:1.5px solid #334155;border-radius:8px;color:#e2e8f0;font-size:0.9rem;transition:.2s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:#3949ab;box-shadow:0 0 0 3px rgba(57,73,171,0.15)}
+.form-group input::placeholder{color:#475569}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.photo-tabs{display:flex;background:#0f172a;border-radius:8px;padding:3px;margin-bottom:10px}
+.tab{flex:1;text-align:center;padding:8px;font-size:0.8rem;font-weight:700;border-radius:6px;cursor:pointer;color:#64748b;transition:.2s}
+.tab.active{background:#1a237e;color:#fbc02d}
+.upload-box{border:2px dashed #334155;border-radius:8px;padding:20px;text-align:center;cursor:pointer;position:relative;transition:.2s;color:#64748b;font-size:0.85rem}
+.upload-box:hover{border-color:#3949ab;background:rgba(57,73,171,0.05)}
+.upload-box input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.random-mode{background:rgba(57,73,171,0.1);border:1px solid #3949ab;border-radius:8px;padding:18px;text-align:center;color:#93c5fd;font-size:0.85rem;display:none}
+.preview-img{width:100%;max-height:100px;object-fit:cover;border-radius:6px;margin-top:10px;display:none}
+.btn-random{width:100%;padding:11px;background:#334155;color:#94a3b8;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;margin-bottom:10px;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-random:hover{background:#3949ab;color:#fff}
+.btn-gen{width:100%;padding:13px;background:linear-gradient(135deg,#1a237e,#3949ab);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:800;font-size:1rem;letter-spacing:1px;transition:.2s;box-shadow:0 4px 15px rgba(26,35,126,0.4)}
+.btn-gen:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,35,126,0.5)}
+.btn-gen:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.divider{height:1px;background:#1e293b;margin:20px 0}
+.stats{background:#0f172a;border-radius:8px;padding:12px;display:flex;justify-content:space-around;margin-bottom:20px}
+.stat{text-align:center}
+.stat-val{font-size:1.1rem;font-weight:800;color:#60a5fa}
+.stat-label{font-size:0.7rem;color:#64748b;margin-top:2px}
+.toast{position:fixed;top:20px;right:20px;background:#1e293b;color:#e2e8f0;padding:12px 20px;border-radius:8px;border-left:4px solid #3949ab;transform:translateX(120%);transition:.3s;z-index:100;font-size:0.9rem;box-shadow:0 10px 30px rgba(0,0,0,0.4)}
+.toast.show{transform:translateX(0)}
+.toast.success{border-left-color:#22c55e}
+.toast.error{border-left-color:#ef4444}
+@media(max-width:900px){.container{flex-direction:column}.sidebar{width:100%;max-height:50vh}.preview-area{padding:16px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🎓</div>
+  <div>
+    <h1>KTM Generator</h1>
+    <span>Kartu Tanda Mahasiswa Professional</span>
+  </div>
+</header>
+
+<div id="toast" class="toast">Notifikasi</div>
+
+<div class="container">
+  <div class="sidebar">
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="statKampus">-</div><div class="stat-label">Kampus</div></div>
+      <div class="stat"><div class="stat-val" id="statGenerated">0</div><div class="stat-label">Generated</div></div>
+    </div>
+
+    <div class="section-title">Data Mahasiswa</div>
+
+    <div class="form-group">
+      <label>Universitas / Institusi</label>
+      <select id="university"><option value="">Loading kampus...</option></select>
+    </div>
+
+    <div class="form-group">
+      <label>Nama Lengkap</label>
+      <input type="text" id="name" placeholder="Nama Lengkap Mahasiswa">
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label>NIM</label>
+        <input type="text" id="nim" placeholder="Nomor Induk">
+      </div>
+      <div class="form-group">
+        <label>Angkatan</label>
+        <input type="number" id="year" value="2024" min="2000" max="2030">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label>Fakultas</label>
+        <input type="text" id="faculty" placeholder="Teknik">
+      </div>
+      <div class="form-group">
+        <label>Program Studi</label>
+        <input type="text" id="major" placeholder="Informatika">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Jenjang</label>
+      <select id="jenjang">
+        <option value="S1">S1 - Sarjana</option>
+        <option value="D3">D3 - Diploma</option>
+        <option value="D4">D4 - Sarjana Terapan</option>
+        <option value="S2">S2 - Magister</option>
+        <option value="S3">S3 - Doktor</option>
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-title">Foto Mahasiswa</div>
+    <div class="photo-tabs">
+      <div class="tab active" onclick="setPhotoMode(false)">&#8679; Upload Manual</div>
+      <div class="tab" onclick="setPhotoMode(true)">&#9733; Foto Random</div>
+    </div>
+
+    <div id="uploadMode" class="upload-box">
+      <input type="file" id="photo" accept="image/*" onchange="previewPhoto(this)">
+      <div>&#128444; Klik atau seret foto ke sini</div>
+      <img id="previewImg" class="preview-img">
+    </div>
+    <div id="randomMode" class="random-mode">
+      ✨ <strong>Mode Foto Random Aktif</strong><br>
+      <span style="font-size:0.78rem;opacity:0.8">Sistem memilih foto ilustrasi secara acak</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="btn-random" onclick="autoFill()">&#127922; Isi Data Random</button>
+    <button class="btn-gen" id="genBtn" onclick="generate()">GENERATE KARTU</button>
+  </div>
+
+  <div class="preview-area">
+    <div class="card-wrap" id="cardWrap">
+      <div class="placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="5" width="20" height="14" rx="2"/>
+          <circle cx="8" cy="12" r="2"/>
+          <path d="M14 9h4M14 12h3M14 15h2"/>
+        </svg>
+        <p>Preview KTM akan muncul di sini</p>
+        <p style="font-size:.75rem;margin-top:6px;opacity:.5">Isi data lalu klik Generate</p>
+      </div>
+    </div>
+    <div class="actions" id="actions" style="display:none">
+      <button class="btn-dl" onclick="downloadSVG()">&#11015; Download SVG</button>
+      <button class="btn-dl gold" onclick="downloadPNG()">&#11015; Download PNG</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentSvg = '';
+let isRandomPhoto = false;
+let generatedCount = 0;
+
+async function init() {
+  try {
+    const res  = await fetch('/kampus-list');
+    const data = await res.json();
+    const sel  = document.getElementById('university');
+    sel.innerHTML = '<option value="">-- Pilih Kampus --</option>';
+    data.forEach(k => {
+      const opt = document.createElement('option');
+      opt.value = k; opt.text = k;
+      sel.appendChild(opt);
+    });
+    document.getElementById('statKampus').textContent = data.length.toLocaleString();
+  } catch(e) { showToast('Gagal load kampus', 'error'); }
+}
+
+function setPhotoMode(isRandom) {
+  isRandomPhoto = isRandom;
+  document.getElementById('uploadMode').style.display = isRandom ? 'none' : 'block';
+  document.getElementById('randomMode').style.display = isRandom ? 'block' : 'none';
+  const tabs = document.querySelectorAll('.tab');
+  tabs[0].classList.toggle('active', !isRandom);
+  tabs[1].classList.toggle('active', isRandom);
+}
+
+function previewPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('previewImg');
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function autoFill() {
+  try {
+    const res = await fetch('/random-student');
+    const d   = await res.json();
+    document.getElementById('name').value    = d.name;
+    document.getElementById('nim').value     = d.nim;
+    document.getElementById('faculty').value = d.faculty;
+    document.getElementById('major').value   = d.major;
+    document.getElementById('year').value    = new Date().getFullYear();
+    const sel = document.getElementById('university');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === d.university) { sel.selectedIndex = i; break; }
+    }
+    showToast('Data random terisi!', 'success');
+  } catch(e) { showToast('Gagal isi data random', 'error'); }
+}
+
+async function generate() {
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  btn.textContent = 'Memproses...';
+
+  const fd = new FormData();
+  fd.append('university', document.getElementById('university').value);
+  fd.append('name',       document.getElementById('name').value);
+  fd.append('nim',        document.getElementById('nim').value);
+  fd.append('faculty',    document.getElementById('faculty').value);
+  fd.append('major',      document.getElementById('major').value);
+  fd.append('jenjang',    document.getElementById('jenjang').value);
+  fd.append('year',       document.getElementById('year').value);
+  fd.append('useAI',      isRandomPhoto ? 'true' : 'false');
+
+  if (!isRandomPhoto) {
+    const photoFile = document.getElementById('photo').files[0];
+    if (photoFile) fd.append('photo', photoFile);
+  }
+
+  try {
+    const res  = await fetch('/generate', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.svg) {
+      currentSvg = data.svg;
+      document.getElementById('cardWrap').innerHTML = data.svg;
+      document.getElementById('actions').style.display = 'flex';
+      generatedCount++;
+      document.getElementById('statGenerated').textContent = generatedCount;
+      showToast('Kartu berhasil dibuat!', 'success');
+    } else {
+      showToast('Error: ' + (data.error || 'Unknown'), 'error');
+    }
+  } catch(e) {
+    showToast('Server error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'GENERATE KARTU';
+  }
+}
+
+function downloadSVG() {
+  if (!currentSvg) return;
+  const blob = new Blob([currentSvg], { type: 'image/svg+xml' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'KTM_' + (document.getElementById('nim').value || 'student') + '.svg';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function downloadPNG() {
+  if (!currentSvg) return;
+  const img    = new Image();
+  const blob   = new Blob([currentSvg], { type: 'image/svg+xml' });
+  const url    = URL.createObjectURL(blob);
+  img.onload   = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width  = 1011; canvas.height = 638;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 1011, 638);
+    canvas.toBlob(b => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = 'KTM_' + (document.getElementById('nim').value || 'student') + '.png';
+      a.click();
+    });
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+init();
+</script>
+</body>
+</html>
